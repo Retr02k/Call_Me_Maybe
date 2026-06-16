@@ -14,7 +14,7 @@ class JSONLoader:
                     FunctionDefinition(
                         name=setting.get('name'),
                         description=setting.get('description'),
-                        parameter=setting.get('parameter'),
+                        parameter=setting.get('parameters'),
                         returns=setting.get('returns')
                     )
                     for setting in settings_read
@@ -30,6 +30,9 @@ def test_main():
     functions = loader.read_input()
 
     for function in functions:
-        print(f"{function}\n\n")
+        print(f"{function}\n")
+        for param, param_type in function.parameter.items():
+            print(f"key -> {param}\nvalue -> {param_type['type']}\nresult -> {function.returns['type']}\n")
+
 
 test_main()
