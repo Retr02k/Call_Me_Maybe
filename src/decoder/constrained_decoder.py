@@ -3,6 +3,7 @@ import json
 import numpy
 from src.services.json_loader import JSONLoader
 
+
 model = llm_sdk.Small_LLM_Model()
 
 def pick_token_from_logits(logits):
@@ -10,61 +11,35 @@ def pick_token_from_logits(logits):
 
 
 loader = JSONLoader()
-functions = loader.read_input()
-function_dict = {
-    function.name: function
-    for function in functions
+functions_definitions = loader.read_function_definitions()
+function_definition_dict = {
+    function_definition.name: function_definition
+    for function_definition in functions_definitions
 }
 
-with open("data/input/function_calling_tests.json", 'r') as file:
-    data = json.load(file)
+data = loader.read_function_calling_tests()
 
+prompts = [item['prompt'] for item in data]
 
-# prompt = "What is the sum of 2 and 3?"
-# renato = model.encode(prompt).tolist()[0]
-# gabriel = model.get_logits_from_input_ids(renato)
-# next_token = pick_token_from_logits(gabriel)
-# print(next_token)
-# next_token_decoded = model.decode(next_token)
-# print(next_token_decoded)
-# print(prompt + next_token_decoded)
+prompt = "What is the sum of 2 and 3?"
+#for prompt in prompts:
+#    input_ids = model.encode(prompt).tolist()[0]
+#    generated = input_ids.copy()
+#    logits = model.get_logits_from_input_ids(generated)
+#    most_probable_next_token = pick_token_from_logits(logits)
+#    next_token_decoded = model.decode(most_probable_next_token)
+#    print(prompt+next_token_decoded)
+#    break
+input_id = model.encode(prompt).tolist()[0]
+generated_token_ids_list = input_id.copy()
+for i in range(0, 10):
+    logits = model.get_logits_from_input_ids(generated_token_ids_list)
+    most_probable_token = pick_token_from_logits(logits)
+    generated_token_ids_list.append(most_probable_token)
+    
 
-
-# prompts = [item['prompt'] for item in data]
-prompt = (
-    "Question: What is the sum of 2 and 3?\n"
-    "Answer:"
-)
-input_ids = model.encode(prompt).tolist()[0]
-generated = input_ids.copy()
-logits = model.get_logits_from_input_ids(generated)
-array = numpy.array(logits)
-top = numpy.argsort(logits)[-10:][::-1]
-for token_id in top:
-    print(
-        token_id,
-        logits[token_id],
-        repr(model.decode(token_id))
-    )
-print(model._model_name)
-
-
-# for prompt in prompts:
-#     input_ids = model.encode(prompt).tolist()[0]
-#     generated = input_ids.copy()
-#     logits = model.get_logits_from_input_ids(generated)
-#     array = numpy.array(logits)
-#     top = numpy.argsort(logits)[-10:][::-1]
-#     for token_id in top:
-#         print(
-#             token_id,
-#             logits[token_id],
-#             repr(model.decode(token_id))
-#         )
-#     print(model._model_name)
-#     break
-    # next_token = pick_token_from_logits(logits)
-    # print(f"=== Next Token ID ===\n{next_token}")
-    # decoded_next_token = repr(model.decode(next_token))
-    # print(f"=== Decoded Token ===\n{decoded_next_token}")
-    # break
+print(f"=== Token Ids List ===\n{generated_token_ids_list}")
+for token in generated_token_ids_list:
+    print(f"=== Decoded Token Id ===\n{model.decode(token)}")
+print(f"=== Decoded Generated ===\n{model.decode(generated_token_ids_list)}")
+print(f"=== Prompt ===\n{prompt}")
